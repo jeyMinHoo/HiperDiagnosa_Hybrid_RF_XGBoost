@@ -1,0 +1,136 @@
+﻿<section class="page active" id="diagnosis">
+  <div class="hero hero-modern">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-particles">
+      <span></span><span></span><span></span><span></span><span></span
+      ><span></span>
+    </div>
+    <div class="hero-content">
+      <div class="eyebrow"><i></i>LAYANAN SKRINING KESEHATAN</div>
+      <h1>Skrining Awal<br /><span>Resiko Hipertensi.</span></h1>
+      <p>
+        Isi data kesehatan dengan lengkap untuk memperoleh estimasi risiko.
+        Hasil skrining membantu menentukan langkah pemeriksaan berikutnya dan
+        bukan pengganti diagnosis tenaga kesehatan.
+      </p>
+      <div class="hero-tags">
+        <span>Random Forest</span>
+        <span>XGBoost</span>
+        <span id="heroWeightTag">
+          {% if metrics and metrics.rf_weight is defined %} {% set rf_percent =
+          "%.0f"|format(metrics.rf_weight * 100) %} {% set xgb_percent =
+          "%.0f"|format(metrics.xgb_weight * 100) %} Soft Voting {{ rf_percent
+          }}:{{ xgb_percent }} {% else %} Soft Voting (bobot dituning otomatis)
+          {% endif %}
+        </span>
+      </div>
+    </div>
+    <div class="ai-orbit">
+      <div class="orbit orbit-one"></div>
+      <div class="orbit orbit-two"></div>
+      <div class="orbit orbit-three"></div>
+      <div class="orbit-line line-one"></div>
+      <div class="orbit-line line-two"></div>
+      <div class="orbit-core"><span>H</span><small>SKRINING</small></div>
+    </div>
+  </div>
+  <div class="dashboard-grid">
+    <section class="panel form-panel">
+      <div class="panel-heading">
+        <div class="step-number">01</div>
+        <div>
+          <h2>Data pasien</h2>
+          <p>
+            Lengkapi tujuh variabel yang digunakan model. Khusus untuk dewasa
+            (usia 18 tahun ke atas).
+          </p>
+        </div>
+      </div>
+      <form id="diagnosisForm" autocomplete="off">
+        <div class="input-grid">
+          <label class="field"
+            ><span>Usia <em>tahun (min. 18)</em></span
+            ><input
+              name="usia"
+              type="number"
+              min="18"
+              max="90"
+              placeholder="Contoh: 45"
+              required /></label
+          ><label class="field"
+            ><span>Jenis kelamin</span
+            ><select name="jenis_kelamin" required>
+              <option value="">Pilih jenis kelamin</option>
+              <option value="L">Laki-laki</option>
+              <option value="P">Perempuan</option>
+            </select></label
+          ><label class="field"
+            ><span>IMT <em>kg/m²</em></span
+            ><input
+              name="imt"
+              type="number"
+              min="10"
+              max="70"
+              step="0.01"
+              placeholder="Contoh: 24.5"
+              required /></label
+          ><label class="field"
+            ><span>Riwayat keluarga</span
+            ><select name="riwayat_keluarga" required>
+              <option value="">Pilih</option>
+              <option value="Ya">Ya</option>
+              <option value="Tidak">Tidak</option>
+            </select></label
+          ><label class="field"
+            ><span>Status merokok</span
+            ><select name="merokok" required>
+              <option value="">Pilih</option>
+              <option value="Ya">Ya</option>
+              <option value="Tidak">Tidak</option>
+            </select></label
+          ><label class="field"
+            ><span>Sistolik <em>mmHg</em></span
+            ><input
+              name="sistolik"
+              type="number"
+              min="70"
+              max="250"
+              placeholder="Contoh: 140"
+              required /></label
+          ><label class="field"
+            ><span>Diastolik <em>mmHg</em></span
+            ><input
+              name="diastolik"
+              type="number"
+              min="30"
+              max="150"
+              placeholder="Contoh: 90"
+              required
+          /></label>
+        </div>
+        <button class="primary-btn" id="analyzeBtn" type="submit">
+          <span>Lihat hasil skrining</span><b>→</b>
+        </button>
+      </form>
+    </section>
+    <section class="panel result-panel" id="resultPanel">
+      <div class="empty-result" id="emptyResult">
+        <div class="empty-icon">✦</div>
+        <h3>Menunggu data</h3>
+        <p>
+          Hasil skrining akan tampil di area ini setelah data pasien diproses.
+        </p>
+        <span class="soft-pill">
+          <i></i>
+          {% if metrics and metrics.rf_weight is defined %} {% set rf_percent =
+          "%.0f"|format(metrics.rf_weight * 100) %} {% set xgb_percent =
+          "%.0f"|format(metrics.xgb_weight * 100) %} Soft Voting {{ rf_percent
+          }}:{{ xgb_percent }} {% else %} Soft Voting (bobot dituning otomatis)
+          {% endif %}
+        </span>
+      </div>
+      <div class="result-content hidden" id="resultContent"></div>
+    </section>
+  </div>
+</section>

@@ -1,0 +1,117 @@
+﻿<section class="page hidden" id="performance">
+  <div class="page-heading">
+    <div class="eyebrow">
+      <i></i>
+      EVALUASI SISTEM
+    </div>
+    <h1>Performa model</h1>
+    <p>Ringkasan ketepatan model yang digunakan dalam skrining.</p>
+  </div>
+
+  {% if metrics %}
+  <div class="metric-grid">
+    {% for key, title, desc in [
+      ('rf', 'Random Forest', 'Tree ensemble'),
+      ('xgb', 'XGBoost', 'Gradient boosting'),
+      ('hybrid', 'Hybrid RF + XGBoost', None)
+    ] %}
+    <article class="metric-card {% if key == 'hybrid' %}featured{% endif %}">
+      <div class="metric-label">
+        <span>{{ desc }}</span>
+      </div>
+      <h2>{{ title }}</h2>
+      <div class="accuracy">
+        {{ "%.2f"|format(metrics[key].accuracy * 100) }}
+        <small>%</small>
+      </div>
+      <span class="accuracy-label">Accuracy</span>
+      <div class="metric-mini-grid">
+        {% for metric in ['precision', 'recall', 'f1', 'auc'] %}
+        <div>
+          <b>{{ "%.2f"|format(metrics[key][metric] * 100) }}%</b>
+          <span>{{ metric|title }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <div class="lower-grid">
+    <section class="panel table-panel">
+      <div class="panel-heading compact-heading">
+        <div class="step-number">02</div>
+        <div>
+          <h2>Confusion matrix</h2>
+          <p>Hasil evaluasi model pada test set setelah training.</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>TN</th>
+              <th>FP</th>
+              <th>FN</th>
+              <th>TP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, title in [
+              ('rf', 'Random Forest'),
+              ('xgb', 'XGBoost'),
+              ('hybrid', 'Hybrid RF + XGBoost')
+            ] %}
+            <tr>
+              <td>{{ title }}</td>
+              <td>{{ metrics[key].tn }}</td>
+              <td>{{ metrics[key].fp }}</td>
+              <td>{{ metrics[key].fn }}</td>
+              <td>{{ metrics[key].tp }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="panel dataset-panel">
+      <div class="panel-heading compact-heading">
+        <div class="step-number">03</div>
+        <div>
+          <h2>Dataset</h2>
+          <p>Pembagian dataset pada proses training model.</p>
+        </div>
+      </div>
+      <div class="dataset-grid">
+        <div>
+          <span>Total data</span>
+          <b>{{ metrics.dataset_total }}</b>
+        </div>
+        <div>
+          <span>Data latih</span>
+          <b>{{ metrics.train_total }}</b>
+        </div>
+        <div>
+          <span>Validasi</span>
+          <b>{{ metrics.validation_total }}</b>
+        </div>
+        <div>
+          <span>Data uji</span>
+          <b>{{ metrics.test_total }}</b>
+        </div>
+      </div>
+      <div class="formula">
+        {{ metrics.split }}
+      </div>
+      <div class="dataset-class-count">
+        Positif {{ metrics.positive_total }} · Negatif {{ metrics.negative_total }}
+      </div>
+    </section>
+  </div>
+  {% else %}
+  <div class="panel empty-panel">
+    <h3>Model belum dilatih</h3>
+    <p>Jalankan <code>python train_model.py</code> terlebih dahulu.</p>
+  </div>
+  {% endif %}
+</section>

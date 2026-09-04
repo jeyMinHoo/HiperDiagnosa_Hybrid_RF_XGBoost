@@ -1,0 +1,215 @@
+{
+  "algorithm": "Hybrid Random Forest + XGBoost",
+  "ensemble_method": "Soft Voting 50:50 (fixed)",
+  "rf_weight": 0.5,
+  "xgb_weight": 0.5,
+  "weight_objective": null,
+  "weight_tuning_method": null,
+  "weight_tuning_score_oof_train": null,
+  "threshold_metric": "youden",
+  "threshold_cost": null,
+  "threshold_min_precision": null,
+  "optimal_threshold": 0.23000000000000004,
+  "threshold_selected_on": "validation_set",
+  "used_smote": false,
+  "scale_pos_weight_train": 3.4511627906976745,
+  "dataset_total": 1596,
+  "train_total": 957,
+  "validation_total": 319,
+  "test_total": 320,
+  "positive_total": 359,
+  "negative_total": 1237,
+  "random_state": 42,
+  "split": "60/20/20 (train/validation/test), stratified",
+  "cross_validation_on_train": {
+    "random_forest": {
+      "accuracy": {
+        "mean": 0.8244328097731239,
+        "std": 0.022484687269206355
+      },
+      "precision": {
+        "mean": 0.6730199692780338,
+        "std": 0.08891822838535335
+      },
+      "recall": {
+        "mean": 0.4418604651162791,
+        "std": 0.07205550411548685
+      },
+      "f1": {
+        "mean": 0.5290497227997228,
+        "std": 0.06078077397958737
+      },
+      "roc_auc": {
+        "mean": 0.8443262014941428,
+        "std": 0.033123829681027964
+      }
+    },
+    "xgboost": {
+      "accuracy": {
+        "mean": 0.7993455497382199,
+        "std": 0.037816502459037935
+      },
+      "precision": {
+        "mean": 0.5529329487697001,
+        "std": 0.07252772686811661
+      },
+      "recall": {
+        "mean": 0.6,
+        "std": 0.08626621856275075
+      },
+      "f1": {
+        "mean": 0.5734221332150304,
+        "std": 0.07052468709267584
+      },
+      "roc_auc": {
+        "mean": 0.8379388675393045,
+        "std": 0.04544189594514354
+      }
+    }
+  },
+  "rf": {
+    "accuracy": 0.784375,
+    "precision": 0.5130434782608696,
+    "ppv": 0.5130434782608696,
+    "npv": 0.9365853658536586,
+    "recall": 0.8194444444444444,
+    "f1": 0.6310160427807487,
+    "auc": 0.8777161738351255,
+    "tn": 192,
+    "fp": 56,
+    "fn": 13,
+    "tp": 59,
+    "specificity": 0.7741935483870968,
+    "sensitivity": 0.8194444444444444,
+    "youden_j": 0.5936379928315412
+  },
+  "xgb": {
+    "accuracy": 0.753125,
+    "precision": 0.47368421052631576,
+    "ppv": 0.47368421052631576,
+    "npv": 0.9518716577540107,
+    "recall": 0.875,
+    "f1": 0.6146341463414634,
+    "auc": 0.8766801075268816,
+    "tn": 178,
+    "fp": 70,
+    "fn": 9,
+    "tp": 63,
+    "specificity": 0.717741935483871,
+    "sensitivity": 0.875,
+    "youden_j": 0.592741935483871
+  },
+  "hybrid": {
+    "accuracy": 0.75625,
+    "precision": 0.47692307692307695,
+    "ppv": 0.47692307692307695,
+    "npv": 0.9473684210526315,
+    "recall": 0.8611111111111112,
+    "f1": 0.6138613861386139,
+    "auc": 0.8792562724014337,
+    "tn": 180,
+    "fp": 68,
+    "fn": 10,
+    "tp": 62,
+    "specificity": 0.7258064516129032,
+    "sensitivity": 0.8611111111111112,
+    "youden_j": 0.5869175627240144
+  },
+  "feature_importance": {
+    "random_forest": {
+      "sistolik": 0.2992926594807855,
+      "diastolik": 0.2102601143538892,
+      "usia": 0.19441330968330214,
+      "imt": 0.1866395574210614,
+      "riwayat_keluarga": 0.05715139876169378,
+      "merokok": 0.027028247727228602,
+      "jenis_kelamin": 0.025214712572039336
+    },
+    "xgboost": {
+      "sistolik": 0.23010225594043732,
+      "riwayat_keluarga": 0.21509407460689545,
+      "diastolik": 0.1243789792060852,
+      "usia": 0.11602938175201416,
+      "merokok": 0.11463064700365067,
+      "imt": 0.1120215430855751,
+      "jenis_kelamin": 0.08774308115243912
+    },
+    "hybrid_weighted": {
+      "sistolik": 0.2646974577106114,
+      "diastolik": 0.1673195467799872,
+      "usia": 0.15522134571765817,
+      "imt": 0.14933055025331826,
+      "riwayat_keluarga": 0.13612273668429462,
+      "merokok": 0.07082944736543964,
+      "jenis_kelamin": 0.056478896862239225
+    },
+    "low_importance_report": {
+      "low_importance_threshold": 0.03,
+      "low_importance_features": []
+    },
+    "permutation_importance_validation_set": {
+      "note": "Cross-check terhadap importance impurity/gain-based di atas dari penurunan AUC saat 1 kolom fitur diacak.",
+      "scoring": "roc_auc",
+      "random_forest": {
+        "sistolik": {
+          "mean": 0.10398954116059389,
+          "std": 0.018714904359061695
+        },
+        "imt": {
+          "mean": 0.0561262932973461,
+          "std": 0.010836846341483708
+        },
+        "diastolik": {
+          "mean": 0.029889226270805303,
+          "std": 0.007125298423242509
+        },
+        "usia": {
+          "mean": 0.023200629779577254,
+          "std": 0.013430290138004716
+        },
+        "riwayat_keluarga": {
+          "mean": 0.01875000000000008,
+          "std": 0.006182554301689026
+        },
+        "merokok": {
+          "mean": 0.0161240440845705,
+          "std": 0.0045745576656017065
+        },
+        "jenis_kelamin": {
+          "mean": 0.005502136752136866,
+          "std": 0.004541082228548842
+        }
+      },
+      "xgboost": {
+        "sistolik": {
+          "mean": 0.08629667116509222,
+          "std": 0.015068215904196703
+        },
+        "imt": {
+          "mean": 0.04671614934772831,
+          "std": 0.0104382860748947
+        },
+        "usia": {
+          "mean": 0.030516194331983815,
+          "std": 0.014157786125954745
+        },
+        "diastolik": {
+          "mean": 0.02922852001799372,
+          "std": 0.008266040557234424
+        },
+        "riwayat_keluarga": {
+          "mean": 0.011870220422851996,
+          "std": 0.006048273361622968
+        },
+        "merokok": {
+          "mean": 0.009615384615384626,
+          "std": 0.002849385090882923
+        },
+        "jenis_kelamin": {
+          "mean": 0.0026709401709401727,
+          "std": 0.0028505222655197332
+        }
+      }
+    }
+  }
+}

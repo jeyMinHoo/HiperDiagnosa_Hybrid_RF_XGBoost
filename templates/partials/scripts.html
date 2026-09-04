@@ -1,0 +1,211 @@
+﻿<script>
+  const navLinks = document.querySelectorAll(".nav-link"),
+    pages = document.querySelectorAll(".page"),
+    breadcrumb = document.getElementById("breadcrumb"),
+    sidebar = document.getElementById("sidebar");
+  navLinks.forEach((link) =>
+    link.addEventListener("click", () => {
+      navLinks.forEach((x) => x.classList.remove("active"));
+      pages.forEach((x) => x.classList.add("hidden"));
+      link.classList.add("active");
+      const page = document.getElementById(link.dataset.target);
+      page.classList.remove("hidden");
+      page.classList.add("page-enter");
+      breadcrumb.textContent =
+        link.querySelector("span:last-child").textContent;
+      sidebar.classList.remove("mobile-open");
+    }),
+  );
+  document
+    .getElementById("mobileMenu")
+    ?.addEventListener("click", () => sidebar.classList.toggle("mobile-open"));
+
+  const themeToggle = document.getElementById("themeToggle");
+  const savedTheme = localStorage.getItem("hiperdiagnosa-theme");
+  const preferredTheme =
+    savedTheme ||
+    (window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light");
+
+  function setTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    themeToggle?.setAttribute(
+      "aria-label",
+      theme === "dark" ? "Aktifkan tema terang" : "Aktifkan tema gelap",
+    );
+    themeToggle?.querySelector(".theme-icon")?.replaceChildren(
+      document.createTextNode(theme === "dark" ? "☀" : "☾"),
+    );
+  }
+
+  setTheme(preferredTheme);
+  themeToggle?.addEventListener("click", () => {
+    const nextTheme =
+      document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    localStorage.setItem("hiperdiagnosa-theme", nextTheme);
+    setTheme(nextTheme);
+  });
+
+  const form = document.getElementById("diagnosisForm");
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const btn = document.getElementById("analyzeBtn"),
+      empty = document.getElementById("emptyResult"),
+      result = document.getElementById("resultContent");
+    btn.disabled = true;
+    btn.classList.add("is-loading");
+    btn.innerHTML =
+      '<span>Menganalisis data</span><i class="button-loader"></i>';
+    const payload = Object.fromEntries(new FormData(form));
+    ["usia", "imt", "sistolik", "diastolik"].forEach(
+      (key) => (payload[key] = Number(payload[key])),
+    );
+    empty.classList.add("hidden");
+    result.classList.remove("hidden");
+    result.innerHTML = `
+      <div class="ai-loading">
+        <h3>AI sedang menganalisis</h3>
+        <p>
+          Memproses data menggunakan Random Forest dan XGBoost
+        </p>
+      </div>
+    `;
+    try {
+      const response = await fetch("/api/diagnose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error(`Server error (${response.status})`);
+      const json = await response.json();
+      if (!json.success)
+        throw new Error(json.error || "Gagal memproses diagnosis.");
+      const d = json.data;
+      const methodLabel =
+        d.rf_weight_percent !== undefined && d.xgb_weight_percent !== undefined
+          ? `Soft Voting ${d.rf_weight_percent}:${d.xgb_weight_percent}`
+          : "Soft Voting (bobot dituning otomatis)";
+      const isCrisis = Boolean(d.requires_immediate_attention);
+      const safeProbability = Math.min(
+        Math.max(Number(d.hybrid_probability_percent), 0),
+        100,
+      );
+      const thresholdPercent = Number(d.decision_threshold_percent ?? 50).toFixed(1);
+      const genderLabel = payload.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan";
+      const familyLabel = payload.riwayat_keluarga === "Ya" ? "Ya" : "Tidak";
+      const smokingLabel = payload.merokok === "Ya" ? "Ya" : "Tidak";
+      const decisionNote = isCrisis
+        ? "Safety override aktif: tekanan darah berada pada kategori krisis dan memerlukan perhatian segera."
+        : `Skor hybrid ${d.hybrid_probability_percent}% dibandingkan threshold ${thresholdPercent}% yang ditentukan dari validation set.`;
+      const recommendation = isCrisis
+        ? "Segera cari pertolongan medis. Jangan menunda hanya berdasarkan hasil aplikasi."
+        : Number(d.prediction) === 1
+          ? "Jadwalkan konsultasi dengan tenaga kesehatan untuk pemeriksaan lanjutan dan konfirmasi."
+          : "Pertahankan kebiasaan sehat dan lakukan pemeriksaan berkala, terutama bila tekanan darah meningkat.";
+      result.innerHTML = `
+        <div class="result-content">
+          ${
+            isCrisis
+              ? `
+          <div class="urgent-alert">
+            <b>KRISIS HIPERTENSI TERDETEKSI</b>
+            <p>
+              Tekanan darah yang dimasukkan berada di level darurat medis.
+              Segera cari pertolongan tenaga kesehatan.
+            </p>
+          </div>
+          `
+              : ""
+          }
+          <div class="result-kicker">
+            <i class="${Number(d.prediction) === 1 ? "danger" : "safe"}"></i>
+            HASIL ANALISIS
+          </div>
+          <div class="result-title-row">
+            <div>
+              <h2>${d.label}</h2>
+              <p>Estimasi probabilitas model hybrid</p>
+            </div>
+            <div class="result-percent">
+              ${d.hybrid_probability_percent}<small>%</small>
+            </div>
+          </div>
+          <div class="confidence">
+            <i style="width: ${safeProbability}%"></i>
+          </div>
+          <div class="model-probs">
+            <div>
+              <span>Random Forest</span>
+              <b>${d.rf_probability_percent}%</b>
+            </div>
+            <div>
+              <span>XGBoost</span>
+              <b>${d.xgb_probability_percent}%</b>
+            </div>
+            <div class="hybrid-box">
+              <span>Hybrid</span>
+              <b>${d.hybrid_probability_percent}%</b>
+            </div>
+          </div>
+          <div class="result-info">
+            <div>
+              <span>Tingkat risiko</span>
+              <b>${d.risk}</b>
+            </div>
+            <div>
+              <span>Tekanan darah</span>
+              <b>${d.pressure_category}</b>
+            </div>
+            <div>
+              <span>Metode</span>
+              <b>${methodLabel}</b>
+            </div>
+          </div>
+          <div class="decision-explanation">
+            <span class="result-subtitle">MENGAPA HASIL INI MUNCUL</span>
+            <p>${decisionNote}</p>
+            <div class="threshold-track">
+              <i style="width: ${safeProbability}%"></i>
+              <b style="left: ${Math.min(Math.max(Number(d.decision_threshold_percent ?? 50), 0), 100)}%"></b>
+            </div>
+            <div class="threshold-legend"><span>Skor hybrid</span><span>Threshold ${thresholdPercent}%</span></div>
+          </div>
+          <div class="input-summary">
+            <span class="result-subtitle">DATA YANG DIPROSES</span>
+            <div class="input-summary-grid">
+              <span><b>${payload.usia}</b> tahun</span>
+              <span><b>${genderLabel}</b></span>
+              <span><b>${payload.imt}</b> kg/m²</span>
+              <span>Riwayat keluarga: <b>${familyLabel}</b></span>
+              <span>Merokok: <b>${smokingLabel}</b></span>
+              <span>Tekanan darah: <b>${payload.sistolik}/${payload.diastolik} mmHg</b></span>
+            </div>
+          </div>
+          <div class="recommendation ${isCrisis || Number(d.prediction) === 1 ? "attention" : "routine"}">
+            <b>${isCrisis ? "TINDAKAN SEGERA" : "SARAN BERIKUTNYA"}</b>
+            <p>${recommendation}</p>
+          </div>
+          <div class="notice">
+            ⓘ ${
+              d.disclaimer ||
+              "Hasil ini merupakan prediksi sistem untuk skrining awal " +
+                "dan tidak menggantikan pemeriksaan tenaga kesehatan."
+            }
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      result.innerHTML = `
+        <div class="error-box">
+          <b>Terjadi kesalahan</b>
+          <small>${error.message}</small>
+        </div>
+      `;
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove("is-loading");
+      btn.innerHTML = "<span>Analisis diagnosis</span><b>→</b>";
+    }
+  });
+</script>

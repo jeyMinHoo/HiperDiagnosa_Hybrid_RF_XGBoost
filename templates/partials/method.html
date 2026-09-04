@@ -1,0 +1,146 @@
+﻿<section class="page hidden" id="method">
+  <div class="page-heading">
+    <div class="eyebrow"><i></i>PROSES SKRINING</div>
+    <h1>Bagaimana hasil dibuat</h1>
+    <p>Alur data, training model, dan evaluasi sebelum hasil skrining ditampilkan.</p>
+  </div>
+  {% if metrics %}
+  <div class="method-overview">
+    <div class="method-intro">
+      <span class="method-label">KONFIGURASI MODEL AKTIF</span>
+      <h2>{{ metrics.algorithm }}</h2>
+      <p>
+        Sistem menggabungkan dua model klasifikasi dan menggunakan probabilitas
+        gabungan untuk memperkirakan risiko hipertensi.
+      </p>
+    </div>
+    <div class="method-stats">
+      <div>
+        <span>Fitur input</span>
+        <b>7 variabel</b>
+      </div>
+      <div>
+        <span>Metode ensemble</span>
+        <b>Soft Voting</b>
+      </div>
+      <div>
+        <span>Ambang keputusan</span>
+        <b>{{ "%.2f"|format(metrics.optimal_threshold) }}</b>
+      </div>
+      <div>
+        <span>Random state</span>
+        <b>{{ metrics.random_state }}</b>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="method-layout">
+    <div class="timeline">
+      {% for number,title,text in [
+        ("01", "Dataset & preprocessing", "Dataset divalidasi, tujuh fitur dipilih, kategori dikonversi menjadi nilai numerik, dan nilai input diperiksa."),
+        ("02", "Pembagian data", "Data dibagi secara stratified menjadi training, validation, dan test set dengan rasio 60/20/20."),
+        ("03", "Random Forest", "Ensemble decision tree dilatih untuk menghasilkan probabilitas kelas hipertensi."),
+        ("04", "XGBoost", "Model gradient boosting dilatih sebagai model kedua dengan distribusi kelas yang diperhitungkan."),
+        ("05", "Soft Voting", "Probabilitas Random Forest dan XGBoost digabungkan menggunakan bobot ensemble yang tersimpan."),
+        ("06", "Threshold & evaluasi", "Ambang keputusan dipilih pada validation set, lalu performa akhir diukur pada test set yang belum dilihat model.")
+      ] %}
+      <div class="timeline-item">
+        <div class="timeline-number">{{ number }}</div>
+        <div class="timeline-copy">
+          <h3>{{ title }}</h3>
+          <p>{{ text }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <aside class="method-note">
+      <span class="method-label">CARA MEMBACA HASIL</span>
+      <h2>Prediksi untuk skrining awal</h2>
+      <p>
+        Nilai probabilitas hybrid menunjukkan tingkat keyakinan model terhadap
+        kelas risiko, bukan diagnosis medis.
+      </p>
+      <div class="method-note-row">
+        <span>Validasi threshold</span>
+        <b>Validation set</b>
+      </div>
+      <div class="method-note-row">
+        <span>Evaluasi performa</span>
+        <b>Test set</b>
+      </div>
+    </aside>
+  </div>
+
+  <div class="method-flow-section">
+    <div class="flow-section-heading">
+      <div>
+        <span class="method-label">DETAIL ALUR ALGORITMA</span>
+        <h2>Dari data mentah menjadi keputusan</h2>
+      </div>
+      <p>Setiap diagram mengikuti urutan proses yang digunakan saat training dan skrining.</p>
+    </div>
+
+    <div class="flowchart-grid">
+      <article class="flowchart-card flowchart-rf">
+        <div class="flowchart-title">
+          <span class="flowchart-icon">RF</span>
+          <div><h3>Random Forest</h3><span>Bagging decision tree</span></div>
+        </div>
+        <div class="flowchart" aria-label="Flowchart Random Forest">
+          <div class="flow-node input"><b>Input data</b><small>7 fitur klinis</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node"><b>Imputasi median</b><small>Pipeline preprocessing</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node process"><b>200 decision trees</b><small>max_features = sqrt<br>class_weight = balanced</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node output"><b>Voting antar tree</b><small>Probabilitas kelas 1</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node decision"><b>p(RF) >= threshold?</b><small>Risiko hipertensi / rendah</small></div>
+        </div>
+      </article>
+
+      <article class="flowchart-card flowchart-xgb">
+        <div class="flowchart-title">
+          <span class="flowchart-icon">XGB</span>
+          <div><h3>XGBoost</h3><span>Gradient boosting</span></div>
+        </div>
+        <div class="flowchart" aria-label="Flowchart XGBoost">
+          <div class="flow-node input"><b>Input data</b><small>7 fitur klinis</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node"><b>Imputasi median</b><small>Pipeline preprocessing</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node process"><b>200 boosting rounds</b><small>max_depth = 5<br>learning_rate = 0.05</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node process"><b>Perbaiki error bertahap</b><small>subsample 0.8<br>colsample_bytree 0.8</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node output"><b>Binary logistic</b><small>scale_pos_weight dari train<br>Probabilitas kelas 1</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node decision"><b>p(XGB) >= threshold?</b><small>Risiko hipertensi / rendah</small></div>
+        </div>
+      </article>
+
+      <article class="flowchart-card flowchart-hybrid">
+        <div class="flowchart-title">
+          <span class="flowchart-icon">HYB</span>
+          <div><h3>Hybrid RF + XGBoost</h3><span>Soft voting ensemble</span></div>
+        </div>
+        <div class="flowchart" aria-label="Flowchart Hybrid Random Forest dan XGBoost">
+          <div class="flow-node input"><b>Data train / validation / test</b><small>Split stratified 60 / 20 / 20</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-branch">
+            <div><span>RF</span><small>p(RF)</small></div>
+            <div><span>XGB</span><small>p(XGB)</small></div>
+          </div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node process"><b>Gabungkan probabilitas</b><small>{{ "%.0f"|format(metrics.rf_weight * 100) }}% p(RF) + {{ "%.0f"|format(metrics.xgb_weight * 100) }}% p(XGB)</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node tuning"><b>Threshold validation</b><small>Youden Index<br>threshold = {{ "%.2f"|format(metrics.optimal_threshold) }}</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node decision"><b>p(Hybrid) >= threshold?</b><small>Hasil skrining hipertensi / tidak</small></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node output"><b>Evaluasi akhir</b><small>Hanya pada test set unseen</small></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
