@@ -52,5 +52,16 @@ Pastikan folder `models/` dan file model `.joblib` ikut ter-commit karena
 aplikasi membutuhkannya saat startup/request. Jangan aktifkan `FLASK_DEBUG=1`
 di environment production.
 
+## Deploy ke Railway
+
+1. Buka [Railway](https://railway.app) dan pilih **Login with GitHub**.
+2. Pilih **New Project > Deploy from GitHub Repo**.
+3. Pilih repository `HiperDiagnosa_Hybrid_RF_XGBoost` dan branch `main`.
+4. Railway akan mendeteksi `requirements.txt` dan menjalankan `Procfile`.
+5. Di menu **Settings > Networking**, pilih **Generate Domain**.
+
+Railway menyediakan nilai `PORT` secara otomatis. Jangan mengubahnya menjadi
+port tetap karena Gunicorn harus mengikuti port tersebut.
+
 > Sistem ini adalah alat skrining berbasis model statistik, bukan
 > pengganti diagnosis dokter.
